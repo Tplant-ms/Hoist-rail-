@@ -83,15 +83,31 @@
     border: 1px solid #bbb;
     border-radius: 5px;
     font-size: 14px;
-    background: #fff;
-    transition: border-color 0.2s;
+    background: #fffde7;
+    transition: border-color 0.2s, background 0.2s;
   }
   .form-group input:focus,
   .form-group select:focus {
     outline: none;
     border-color: var(--primary);
+    background: #fff9c4;
     box-shadow: 0 0 0 2px rgba(21,101,192,0.15);
   }
+  .clear-btn {
+    display: block;
+    width: 100%;
+    margin-top: 10px;
+    padding: 9px;
+    background: #fff;
+    border: 1px solid #bbb;
+    border-radius: 5px;
+    font-size: 13px;
+    color: #555;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    letter-spacing: 0.03em;
+  }
+  .clear-btn:hover { background: #fce4ec; border-color: #e57373; color: #c62828; }
   .form-group.full { grid-column: 1 / -1; }
   .member-props {
     display: grid;
@@ -223,6 +239,7 @@
       <select id="member"></select>
     </div>
   </div>
+  <button class="clear-btn" id="clear-btn">🗑 入力をクリア（初期値に戻す）</button>
   <div class="member-props" id="member-props" style="display:none">
     <div class="prop-box"><div class="val" id="p-H">—</div><div class="lbl">H (mm)</div></div>
     <div class="prop-box"><div class="val" id="p-B">—</div><div class="lbl">B (mm)</div></div>
@@ -572,6 +589,19 @@ document.getElementById('L').addEventListener('input', function() {
   document.getElementById('Lb').value = this.value;
   calc();
 });
+
+// ===== クリアボタン =====
+document.getElementById('clear-btn').addEventListener('click', function() {
+  document.getElementById('W').value   = 1000;
+  document.getElementById('Hw').value  = 200;
+  document.getElementById('phi').value = 1.2;
+  document.getElementById('L').value   = 5.0;
+  document.getElementById('fb0').value = 15.6;
+  document.getElementById('Lb').value  = 5.0;
+  document.getElementById('member').selectedIndex = 0;
+  calc();
+});
+
 calc();
 </script>
 </body>
