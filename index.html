@@ -239,7 +239,7 @@
       <select id="member"></select>
     </div>
   </div>
-  <button class="clear-btn" id="clear-btn">🗑 入力をクリア（初期値に戻す）</button>
+  <button class="clear-btn" id="clear-btn">🗑 クリア（吊り荷重・ホイスト自重・スパンを消去）</button>
   <div class="member-props" id="member-props" style="display:none">
     <div class="prop-box"><div class="val" id="p-H">—</div><div class="lbl">H (mm)</div></div>
     <div class="prop-box"><div class="val" id="p-B">—</div><div class="lbl">B (mm)</div></div>
@@ -592,14 +592,16 @@ document.getElementById('L').addEventListener('input', function() {
 
 // ===== クリアボタン =====
 document.getElementById('clear-btn').addEventListener('click', function() {
-  document.getElementById('W').value   = 1000;
-  document.getElementById('Hw').value  = 200;
+  document.getElementById('W').value   = '';
+  document.getElementById('Hw').value  = '';
+  document.getElementById('L').value   = '';
+  document.getElementById('Lb').value  = '';
   document.getElementById('phi').value = 1.2;
-  document.getElementById('L').value   = 5.0;
   document.getElementById('fb0').value = 15.6;
-  document.getElementById('Lb').value  = 5.0;
   document.getElementById('member').selectedIndex = 0;
-  calc();
+  document.getElementById('member-props').style.display = 'none';
+  document.getElementById('result-card').style.display  = 'none';
+  document.getElementById('W').focus();
 });
 
 calc();
