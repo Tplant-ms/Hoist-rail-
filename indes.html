@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ホイストレール検討</title>
+<style>
+  :root {
+    --primary: #1565c0;
+    --ok: #2e7d32;
+    --ng: #c62828;
+    --warn: #e65100;
+    --bg: #f5f5f5;
+    --card: #ffffff;
+    --border: #ddd;
+    --text: #212121;
+    --sub: #555;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .page-wrap {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  header {
+    background: var(--primary);
+    color: #fff;
+    padding: 14px 20px;
+    font-size: 17px;
+    font-weight: bold;
+    letter-spacing: 0.05em;
+    border-radius: 0 0 8px 8px;
+    text-align: center;
+  }
+  header small {
+    display: block;
+    font-size: 11px;
+    font-weight: normal;
+    opacity: 0.85;
+    margin-top: 3px;
+  }
+  .container { padding: 12px 12px 40px; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+  }
+  .card h2 {
+    font-size: 13px;
+    font-weight: bold;
+    color: var(--primary);
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 6px;
+    margin-bottom: 10px;
+    letter-spacing: 0.04em;
+  }
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  @media (max-width: 420px) {
+    .form-grid { grid-template-columns: 1fr; }
+  }
+  .form-group label {
+    display: block;
+    font-size: 12px;
+    color: var(--sub);
+    margin-bottom: 3px;
+  }
+  .form-group input,
+  .form-group select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #bbb;
+    border-radius: 5px;
+    font-size: 14px;
+    background: #fff;
+    transition: border-color 0.2s;
+  }
+  .form-group input:focus,
+  .form-group select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(21,101,192,0.15);
+  }
+  .form-group.full { grid-column: 1 / -1; }
+  .member-props {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    margin-top: 8px;
+  }
+  @media (max-width: 420px) {
+    .member-props { grid-template-columns: repeat(2, 1fr); }
+  }
+  .prop-box {
+    background: #f0f4ff;
+    border-radius: 5px;
+    padding: 5px 7px;
+    text-align: center;
+  }
+  .prop-box .val { font-size: 13px; font-weight: bold; color: var(--primary); }
+  .prop-box .lbl { font-size: 10px; color: var(--sub); }
+  .result-table { width: 100%; border-collapse: collapse; margin-top: 4px; }
+  .result-table th, .result-table td {
+    padding: 7px 8px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+    font-size: 13px;
+  }
+  .result-table th {
+    background: #f0f4ff;
+    font-weight: bold;
+    color: var(--primary);
+    font-size: 12px;
+  }
+  .result-table tr:last-child td { border-bottom: none; }
+  .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-weight: bold;
+    font-size: 12px;
+    min-width: 40px;
+    text-align: center;
+  }
+  .badge.ok { background: #e8f5e9; color: var(--ok); }
+  .badge.ng { background: #ffebee; color: var(--ng); }
+  .badge.na { background: #f5f5f5; color: #999; }
+  .ratio-bar-wrap {
+    display: flex; align-items: center; gap: 6px;
+  }
+  .ratio-val { min-width: 44px; text-align: right; font-weight: bold; font-size: 13px; }
+  .ratio-bar {
+    flex: 1; height: 8px; background: #e0e0e0; border-radius: 4px; overflow: hidden;
+  }
+  .ratio-fill {
+    height: 100%; border-radius: 4px; transition: width 0.3s, background 0.3s;
+  }
+  .summary-box {
+    text-align: center;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    margin-top: 6px;
+  }
+  .summary-box.ok { background: #e8f5e9; color: var(--ok); }
+  .summary-box.ng { background: #ffebee; color: var(--ng); }
+  .summary-box.na { background: #f5f5f5; color: #999; }
+  .inter-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  @media (max-width: 380px) { .inter-grid { grid-template-columns: 1fr; } }
+  .inter-item {
+    background: #fafafa;
+    border: 1px solid #e8e8e8;
+    border-radius: 5px;
+    padding: 5px 8px;
+  }
+  .inter-item .k { font-size: 11px; color: var(--sub); }
+  .inter-item .v { font-size: 13px; font-weight: bold; }
+  .note {
+    font-size: 11px;
+    color: var(--sub);
+    margin-top: 8px;
+    line-height: 1.6;
+  }
+  .divider { border: none; border-top: 1px solid #e0e0e0; margin: 10px 0; }
+</style>
+</head>
+<body>
+<div class="page-wrap">
+<header>
+  🏗 ホイストレール検討
+  <small>許容応力度設計（AIJ） — SS400 / F=235N/mm²</small>
+</header>
+
+<div class="container">
+
+<!-- 入力 -->
+<div class="card">
+  <h2>📥 入力条件</h2>
+  <div class="form-grid">
+    <div class="form-group">
+      <label>吊り荷重 W (kg)</label>
+      <input type="number" id="W" value="1000" min="0" step="50">
+    </div>
+    <div class="form-group">
+      <label>ホイスト自重 Hw (kg)</label>
+      <input type="number" id="Hw" value="200" min="0" step="10">
+    </div>
+    <div class="form-group">
+      <label>衝撃係数 φ</label>
+      <input type="number" id="phi" value="1.2" min="1" max="2" step="0.05">
+    </div>
+    <div class="form-group">
+      <label>スパン L (m)</label>
+      <input type="number" id="L" value="5.0" min="0.5" max="30" step="0.1">
+    </div>
+    <div class="form-group">
+      <label>許容曲げ応力度 fb₀ (kN/cm²)</label>
+      <input type="number" id="fb0" value="15.6" min="1" step="0.1">
+    </div>
+    <div class="form-group">
+      <label>座屈支点間距離 Lb (m)</label>
+      <input type="number" id="Lb" value="5.0" min="0" step="0.1">
+    </div>
+    <div class="form-group full">
+      <label>部材選択</label>
+      <select id="member"></select>
+    </div>
+  </div>
+  <div class="member-props" id="member-props" style="display:none">
+    <div class="prop-box"><div class="val" id="p-H">—</div><div class="lbl">H (mm)</div></div>
+    <div class="prop-box"><div class="val" id="p-B">—</div><div class="lbl">B (mm)</div></div>
+    <div class="prop-box"><div class="val" id="p-Ix">—</div><div class="lbl">Ix (cm⁴)</div></div>
+    <div class="prop-box"><div class="val" id="p-Zx">—</div><div class="lbl">Zx (cm³)</div></div>
+    <div class="prop-box"><div class="val" id="p-ib">—</div><div class="lbl">ib (cm)</div></div>
+    <div class="prop-box"><div class="val" id="p-eta">—</div><div class="lbl">η</div></div>
+    <div class="prop-box"><div class="val" id="p-tw">—</div><div class="lbl">tw (mm)</div></div>
+    <div class="prop-box"><div class="val" id="p-tf">—</div><div class="lbl">tf (mm)</div></div>
+  </div>
+</div>
+
+<!-- 結果 -->
+<div class="card" id="result-card" style="display:none">
+  <h2>📊 検討結果</h2>
+
+  <div class="summary-box na" id="summary-box">— 計算中 —</div>
+  <hr class="divider">
+
+  <table class="result-table">
+    <thead>
+      <tr>
+        <th>検討項目</th>
+        <th>計算値</th>
+        <th>許容値</th>
+        <th>比率</th>
+        <th>判定</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>① 曲げ応力</td>
+        <td id="r-sb">—</td>
+        <td id="r-fb">—</td>
+        <td><div class="ratio-bar-wrap"><span class="ratio-val" id="rv-b">—</span><div class="ratio-bar"><div class="ratio-fill" id="rf-b" style="width:0%"></div></div></div></td>
+        <td><span class="badge na" id="badge-b">—</span></td>
+      </tr>
+      <tr>
+        <td>② 横座屈</td>
+        <td id="r-sb2">—</td>
+        <td id="r-fb2">—</td>
+        <td><div class="ratio-bar-wrap"><span class="ratio-val" id="rv-ltb">—</span><div class="ratio-bar"><div class="ratio-fill" id="rf-ltb" style="width:0%"></div></div></div></td>
+        <td><span class="badge na" id="badge-ltb">—</span></td>
+      </tr>
+      <tr>
+        <td>③ せん断</td>
+        <td id="r-tau">—</td>
+        <td id="r-fs">—</td>
+        <td><div class="ratio-bar-wrap"><span class="ratio-val" id="rv-s">—</span><div class="ratio-bar"><div class="ratio-fill" id="rf-s" style="width:0%"></div></div></div></td>
+        <td><span class="badge na" id="badge-s">—</span></td>
+      </tr>
+      <tr>
+        <td>④ たわみ</td>
+        <td id="r-delta">—</td>
+        <td id="r-deltaa">—</td>
+        <td><div class="ratio-bar-wrap"><span class="ratio-val" id="rv-d">—</span><div class="ratio-bar"><div class="ratio-fill" id="rf-d" style="width:0%"></div></div></div></td>
+        <td><span class="badge na" id="badge-d">—</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <hr class="divider">
+  <div style="font-size:12px; font-weight:bold; color:var(--sub); margin-bottom:6px;">中間計算値</div>
+  <div class="inter-grid" id="inter-grid"></div>
+  <p class="note" id="calc-note"></p>
+</div>
+
+<!-- 計算式 -->
+<div class="card">
+  <h2>📐 計算式概要</h2>
+  <p style="font-size:12px; line-height:1.8; color:var(--sub)">
+    <b>設計荷重：</b> P₁ = (W + Hw)×φ×9.81/1000 [kN]<br>
+    <b>曲げモーメント：</b> M = P₁×L/4 [kN·m]（集中荷重・単純梁）<br>
+    <b>せん断力：</b> Q = P₁/2 [kN]<br>
+    <b>曲げ応力度：</b> σb = M×100/Zx [kN/cm²]<br>
+    <b>横座屈スレンダー比：</b> λb = Lb×100/ib<br>
+    <b>低減係数ν（AIJ）：</b> λb≤60→1.0 / ≤130→線形低減 / &gt;130→放物線<br>
+    <b>横座屈許容曲げ：</b> fb′ = ν×fb₀<br>
+    <b>せん断応力度：</b> Aw=(H−2tf)×tw/100 [cm²]、τ=Q/Aw<br>
+    <b>許容せん断：</b> fs = fb₀/√3<br>
+    <b>たわみ：</b> δ = P₁×(L×100)³/(48×E×Ix) [cm]、δa = L×100/800<br>
+    <b>E = 21,000 kN/cm²（鋼材ヤング係数）</b>
+  </p>
+</div>
+
+</div><!-- /container -->
+</div><!-- /page-wrap -->
+
+<script>
+// ===== 部材データ =====
+// [名称, H, B, tw, tf, A, Ix, Zx, ib, eta, Iy, Zy, W, 種別]
+const MEMBERS = [
+  // H形鋼 細幅
+  ['H-150×75×5×7',150,75,5,7,17.85,666,88.8,1.96,5.6,49.5,13.2,14,'細幅'],
+  ['H-175×90×5×8',175,90,5,8,22.9,1210,138,2.39,5.81,97.5,21.7,18,'細幅'],
+  ['H-200×100×5.5×8',200,100,5.5,8,26.67,1810,181,2.63,6.57,134,26.7,20.9,'細幅'],
+  ['H-250×125×6×9',250,125,6,9,36.97,3960,317,3.3,7.33,294,47,29,'細幅'],
+  ['H-300×150×6.5×9',300,150,6.5,9,46.78,7210,481,3.87,8.61,508,67.7,36.7,'細幅'],
+  ['H-350×175×7×11',350,175,7,11,62.91,13500,771,4.6,8.35,984,112,49.4,'細幅'],
+  ['H-400×200×8×13',400,200,8,13,83.37,23500,1170,5.29,8.13,1740,174,65.4,'細幅'],
+  ['H-450×200×9×14',450,200,9,14,95.43,32900,1460,5.23,8.4,1870,187,74.9,'細幅'],
+  ['H-500×200×10×16',500,200,10,16,112.3,46800,1870,5.2,8.13,2140,214,88.2,'細幅'],
+  ['H-600×200×11×17',600,200,11,17,131.7,75600,2520,5.09,8.98,2270,227,103,'細幅'],
+  // H形鋼 中幅
+  ['H-148×100×6×9',148,100,6,9,26.35,1000,135,2.71,4.46,150,30.1,20.7,'中幅'],
+  ['H-194×150×6×9',194,150,6,9,38.11,2630,271,4.09,5.87,507,67.6,29.9,'中幅'],
+  ['H-244×175×7×11',244,175,7,11,55.49,6040,495,4.72,5.99,984,112,43.6,'中幅'],
+  ['H-294×200×8×12',294,200,8,12,71.05,11100,756,5.38,5.69,1600,160,55.8,'中幅'],
+  ['H-340×250×9×14',340,250,9,14,99.53,21200,1250,6.79,6.6,3650,292,78.1,'中幅'],
+  ['H-390×300×10×16',390,300,10,16,133.3,37900,1940,8.19,6.66,7200,480,105,'中幅'],
+  ['H-440×300×11×18',440,300,11,18,153.9,54700,2490,8.16,6.65,8110,540,121,'中幅'],
+  ['H-488×300×11×18',488,300,11,18,159.2,68900,2820,8.1,7.32,8110,540,125,'中幅'],
+  ['H-588×300×12×20',588,300,12,20,187.2,114000,3890,8.01,7.85,9010,601,147,'中幅'],
+  ['H-700×300×13×24',700,300,13,24,231.5,197000,5640,7.95,7.73,10800,721,182,'中幅'],
+  ['H-800×300×14×26',800,300,14,26,263.5,286000,7160,7.87,8.08,11700,781,207,'中幅'],
+  ['H-900×300×16×28',900,300,16,28,305.8,404000,8990,7.75,8.31,12600,842,240,'中幅'],
+  // H形鋼 広幅
+  ['H-100×100×6×8',100,100,6,8,21.59,378,75.6,2.75,3.44,134,26.7,16.9,'広幅'],
+  ['H-125×125×6.5×9',125,125,6.5,9,30,839,134,3.45,3.84,293,46.9,23.6,'広幅'],
+  ['H-150×150×7×10',150,150,7,10,39.65,1620,216,4.15,4.15,563,75.1,31.1,'広幅'],
+  ['H-175×175×7.5×11',175,175,7.5,11,51.43,2900,331,4.8,4.36,984,112,40.4,'広幅'],
+  ['H-200×200×8×12',200,200,8,12,63.53,4720,472,5.5,4.59,1600,160,49.9,'広幅'],
+  ['H-250×250×9×14',250,250,9,14,91.43,10700,860,6.91,4.93,3650,292,71.8,'広幅'],
+  ['H-300×300×10×15',300,300,10,15,118.5,20200,1350,8.28,5.52,6750,450,93,'広幅'],
+  ['H-350×350×12×19',350,350,12,19,171.9,39800,2280,10.8,5.11,13600,776,135,'広幅'],
+  ['H-400×400×13×21',400,400,13,21,218.7,66600,3330,11,5.25,22400,1120,172,'広幅'],
+  // I形鋼 (JIS G 3192)
+  ['I-100×75×5×7',100,75,5,7,16.43,281,56.2,1.7,3.24,47.3,12.6,12.9,'I形鋼'],
+  ['I-125×75×5.5×8',125,75,5.5,8,20.45,538,86,1.68,3.5,57.5,15.3,16.1,'I形鋼'],
+  ['I-150×75×5.5×9',150,75,5.5,9,21.83,819,109,1.62,3.6,57.5,15.3,17.1,'I形鋼'],
+  ['I-150×125×8.5×13',150,125,8.5,13,46.15,1760,235,2.89,2.67,385,61.6,36.2,'I形鋼'],
+  ['I-180×100×6×10',180,100,6,10,30.06,1670,186,2.14,3.85,138,27.5,23.6,'I形鋼'],
+  ['I-200×100×7×10',200,100,7,10,33.06,2170,217,2.05,4.1,138,27.7,26,'I形鋼'],
+  ['I-200×150×9×15',200,150,9,15,64.16,4460,446,3.43,3.05,753,100,50.4,'I形鋼'],
+  ['I-250×125×7.5×12.5',250,125,7.5,12.5,48.79,5180,414,2.63,4.21,337,53.9,38.3,'I形鋼'],
+  ['I-250×125×10×19',250,125,10,19,70.73,7310,585,2.76,2.91,538,86,55.5,'I形鋼'],
+  ['I-300×150×8×12',300,150,8,12,61.58,9480,632,3.09,5.15,588,78.4,48.3,'I形鋼'],
+  ['I-300×150×10×19',300,150,10,19,83.47,12700,849,3.26,3.43,886,118,65.5,'I形鋼'],
+  ['I-300×150×11.5×23',300,150,11.5,23,97.88,14700,978,3.32,2.89,1080,143,76.8,'I形鋼'],
+  ['I-350×150×9×13.5',350,150,9,13.5,74.58,15200,870,3.07,5.31,702,93.5,58.5,'I形鋼'],
+  ['I-350×150×12×25',350,150,12,25,111.1,22400,1280,3.26,3.04,1180,158,87.2,'I形鋼'],
+  ['I-400×150×10×17',400,150,10,17,91.73,24100,1200,3.07,4.82,864,115,72,'I形鋼'],
+  ['I-400×150×12.5×27',400,150,12.5,27,122.1,31700,1580,3.18,3.14,1240,165,95.8,'I形鋼'],
+  ['I-450×175×11×19',450,175,11,19,116.8,39200,1740,3.6,4.87,1510,173,91.7,'I形鋼'],
+  ['I-450×175×13×27',450,175,13,27,146.1,48800,2170,3.72,3.54,2020,231,115,'I形鋼'],
+  ['I-600×190×13×25',600,190,13,25,169.4,98400,3280,3.81,4.81,2460,259,133,'I形鋼'],
+  ['I-600×190×16×38',600,190,16,38,224.5,130000,4330,3.97,3.3,3540,373,176,'I形鋼'],
+];
+
+// ===== ドロップダウン構築 =====
+(function buildDropdown() {
+  const sel = document.getElementById('member');
+  const groups = {};
+  MEMBERS.forEach(m => {
+    const type = m[0].startsWith('H') ? 'H形鋼 ' + m[13] : m[13];
+    if (!groups[type]) groups[type] = [];
+    groups[type].push(m);
+  });
+  Object.entries(groups).forEach(([gname, members]) => {
+    const og = document.createElement('optgroup');
+    og.label = gname;
+    members.forEach(m => {
+      const opt = document.createElement('option');
+      opt.value = m[0];
+      opt.textContent = m[0] + '  (W=' + m[12] + ' kg/m)';
+      og.appendChild(opt);
+    });
+    sel.appendChild(og);
+  });
+})();
+
+// ===== メンバーマップ =====
+const MEMBER_MAP = {};
+MEMBERS.forEach(m => { MEMBER_MAP[m[0]] = m; });
+
+// ===== 計算 =====
+function calc() {
+  const W   = parseFloat(document.getElementById('W').value)   || 0;
+  const Hw  = parseFloat(document.getElementById('Hw').value)  || 0;
+  const phi = parseFloat(document.getElementById('phi').value) || 1.2;
+  const L   = parseFloat(document.getElementById('L').value)   || 5.0;
+  const fb0 = parseFloat(document.getElementById('fb0').value) || 15.6;
+  const Lb  = parseFloat(document.getElementById('Lb').value)  || L;
+  const name = document.getElementById('member').value;
+  const m = MEMBER_MAP[name];
+  if (!m) return;
+
+  const [_n, H, B, tw, tf, A, Ix, Zx, ib, eta, Iy, Zy, Wkg, type] = m;
+
+  // 断面プロパティ表示
+  document.getElementById('p-H').textContent  = H;
+  document.getElementById('p-B').textContent  = B;
+  document.getElementById('p-Ix').textContent = Ix.toLocaleString();
+  document.getElementById('p-Zx').textContent = Zx.toLocaleString();
+  document.getElementById('p-ib').textContent = ib;
+  document.getElementById('p-eta').textContent= eta;
+  document.getElementById('p-tw').textContent = tw;
+  document.getElementById('p-tf').textContent = tf;
+  document.getElementById('member-props').style.display = 'grid';
+  document.getElementById('result-card').style.display  = 'block';
+
+  // 設計荷重
+  const P1  = (W + Hw) * phi * 9.81 / 1000; // kN
+  const M   = P1 * L / 4;                    // kN·m
+  const Q   = P1 / 2;                         // kN
+  const E   = 21000;                          // kN/cm²
+
+  // ① 曲げ
+  const sb  = M * 100 / Zx;                  // kN/cm²
+  const rb  = sb / fb0;
+
+  // ② 横座屈
+  const lb  = Lb * 100 / ib;                 // スレンダー比
+  let nu;
+  if (lb <= 60) {
+    nu = 1.0;
+  } else if (lb <= 130) {
+    nu = 1.0 - 0.4 * ((lb - 60) / 70);
+  } else {
+    nu = 89000 / (lb * lb);
+  }
+  const fb_prime = nu * fb0;
+  const rltb = sb / fb_prime;
+
+  // ③ せん断
+  const Aw  = (H - 2 * tf) * tw / 100;      // cm²
+  const tau = Q / Aw;                         // kN/cm²
+  const fs  = fb0 / Math.sqrt(3);
+  const rs  = tau / fs;
+
+  // ④ たわみ
+  const delta  = P1 * Math.pow(L * 100, 3) / (48 * E * Ix); // cm
+  const delta_a = L * 100 / 800;                              // cm
+  const rd     = delta / delta_a;
+
+  // 判定ヘルパー
+  function judgeClass(r) {
+    if (isNaN(r) || !isFinite(r)) return 'na';
+    return r <= 1.0 ? 'ok' : 'ng';
+  }
+  function fmt(v, dec) {
+    if (isNaN(v) || !isFinite(v)) return '—';
+    return v.toFixed(dec);
+  }
+  function ratioText(r) {
+    if (isNaN(r) || !isFinite(r)) return '—';
+    return (r * 100).toFixed(1) + '%';
+  }
+  function barWidth(r) {
+    if (isNaN(r) || !isFinite(r)) return '0%';
+    return Math.min(r * 100, 100) + '%';
+  }
+  function barColor(r) {
+    if (isNaN(r) || !isFinite(r)) return '#ccc';
+    if (r <= 0.7) return '#43a047';
+    if (r <= 1.0) return '#ffa726';
+    return '#e53935';
+  }
+
+  // 曲げ
+  document.getElementById('r-sb').textContent  = fmt(sb, 2) + ' kN/cm²';
+  document.getElementById('r-fb').textContent  = fmt(fb0, 2) + ' kN/cm²';
+  document.getElementById('rv-b').textContent  = ratioText(rb);
+  document.getElementById('rf-b').style.width  = barWidth(rb);
+  document.getElementById('rf-b').style.background = barColor(rb);
+  const bb = document.getElementById('badge-b');
+  bb.className = 'badge ' + judgeClass(rb);
+  bb.textContent = judgeClass(rb).toUpperCase();
+
+  // 横座屈
+  document.getElementById('r-sb2').textContent  = fmt(sb, 2) + ' kN/cm²';
+  document.getElementById('r-fb2').textContent  = fmt(fb_prime, 2) + ' kN/cm²';
+  document.getElementById('rv-ltb').textContent = ratioText(rltb);
+  document.getElementById('rf-ltb').style.width = barWidth(rltb);
+  document.getElementById('rf-ltb').style.background = barColor(rltb);
+  const bltb = document.getElementById('badge-ltb');
+  bltb.className = 'badge ' + judgeClass(rltb);
+  bltb.textContent = judgeClass(rltb).toUpperCase();
+
+  // せん断
+  document.getElementById('r-tau').textContent = fmt(tau, 2) + ' kN/cm²';
+  document.getElementById('r-fs').textContent  = fmt(fs, 2) + ' kN/cm²';
+  document.getElementById('rv-s').textContent  = ratioText(rs);
+  document.getElementById('rf-s').style.width  = barWidth(rs);
+  document.getElementById('rf-s').style.background = barColor(rs);
+  const bs = document.getElementById('badge-s');
+  bs.className = 'badge ' + judgeClass(rs);
+  bs.textContent = judgeClass(rs).toUpperCase();
+
+  // たわみ
+  document.getElementById('r-delta').textContent  = fmt(delta, 2) + ' cm';
+  document.getElementById('r-deltaa').textContent = fmt(delta_a, 2) + ' cm (L/800)';
+  document.getElementById('rv-d').textContent     = ratioText(rd);
+  document.getElementById('rf-d').style.width     = barWidth(rd);
+  document.getElementById('rf-d').style.background = barColor(rd);
+  const bd = document.getElementById('badge-d');
+  bd.className = 'badge ' + judgeClass(rd);
+  bd.textContent = judgeClass(rd).toUpperCase();
+
+  // 総合判定
+  const allR = [rb, rltb, rs, rd];
+  const allOk = allR.every(r => isFinite(r) && r <= 1.0);
+  const anyNg = allR.some(r => !isFinite(r) || r > 1.0);
+  const sb2 = document.getElementById('summary-box');
+  if (allOk) {
+    sb2.className = 'summary-box ok';
+    sb2.textContent = '✅ 全項目 OK — 部材は十分な強度を有します';
+  } else if (anyNg) {
+    const maxR = Math.max(...allR.filter(isFinite));
+    sb2.className = 'summary-box ng';
+    sb2.textContent = '❌ NG — 最大比率 ' + (maxR * 100).toFixed(1) + '%（大きい部材を選択してください）';
+  }
+
+  // 中間値
+  const items = [
+    ['設計荷重 P₁', fmt(P1,2) + ' kN'],
+    ['曲げモーメント M', fmt(M,2) + ' kN·m'],
+    ['せん断力 Q', fmt(Q,2) + ' kN'],
+    ['腹板断面積 Aw', fmt(Aw,2) + ' cm²'],
+    ['λb（座屈スレンダー比）', fmt(lb,1)],
+    ['ν（低減係数）', fmt(nu,3)],
+    ['fb′（横座屈許容）', fmt(fb_prime,2) + ' kN/cm²'],
+    ['fs（許容せん断）', fmt(fs,2) + ' kN/cm²'],
+  ];
+  const grid = document.getElementById('inter-grid');
+  grid.innerHTML = items.map(([k,v]) =>
+    `<div class="inter-item"><div class="k">${k}</div><div class="v">${v}</div></div>`
+  ).join('');
+
+  // 注記
+  const note = document.getElementById('calc-note');
+  let noteText = '※ SS400, F=235N/mm², E=21,000kN/cm²。';
+  if (type === 'I形鋼') noteText += ' I形鋼はib≈iy（弱軸）で近似。';
+  if (lb > 130) noteText += ` λb=${fmt(lb,0)}>130のため放物線式適用。`;
+  else if (lb > 60) noteText += ` λb=${fmt(lb,0)}∈(60,130)のため線形低減。`;
+  else noteText += ` λb=${fmt(lb,0)}≤60のためν=1.0（座屈無視）。`;
+  note.textContent = noteText;
+}
+
+// ===== イベント =====
+['W','Hw','phi','L','fb0','Lb','member'].forEach(id => {
+  document.getElementById(id).addEventListener('input', calc);
+  document.getElementById(id).addEventListener('change', calc);
+});
+// Lb を L と連動（初期値）
+document.getElementById('L').addEventListener('input', function() {
+  document.getElementById('Lb').value = this.value;
+  calc();
+});
+calc();
+</script>
+</body>
+</html>
